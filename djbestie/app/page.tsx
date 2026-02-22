@@ -1,5 +1,5 @@
 "use client";
-import 'regenerator-runtime/runtime';
+import "regenerator-runtime/runtime";
 import { useEffect, useRef, useState } from "react";
 import { Unity, useUnityContext } from "react-unity-webgl";
 import SpeechRecognition, {
@@ -8,11 +8,11 @@ import SpeechRecognition, {
 import { ISong, IArtist } from "./types";
 
 const sendSocket = new WebSocket("ws://localhost:5298");
-let socketSend = (data: any) => { };
-let addDjResponse = (message: string) => { };
-let setPlaylistGlobal = (songs: ISong[]) => { };
-let setFavoritesGlobal = (artists: IArtist[]) => { };
-let changeSong = (song: ISong, rating: number) => { };
+let socketSend = (data: any) => {};
+let addDjResponse = (message: string) => {};
+let setPlaylistGlobal = (songs: ISong[]) => {};
+let setFavoritesGlobal = (artists: IArtist[]) => {};
+let changeSong = (song: ISong, rating: number) => {};
 
 sendSocket.addEventListener("open", (event) => {
   console.log("send socket is open");
@@ -28,14 +28,11 @@ sendSocket.addEventListener("message", (event) => {
   let data = JSON.parse(event.data);
   if (data.type == "dj_response") {
     addDjResponse(data.content);
-  }
-  else if (data.type == "refresh_songs") {
+  } else if (data.type == "refresh_songs") {
     setPlaylistGlobal(data.content as ISong[]);
-  }
-  else if (data.type == "refresh_artists") {
+  } else if (data.type == "refresh_artists") {
     setFavoritesGlobal(data.content as IArtist[]);
-  }
-  else if (data.type == "change_song") {
+  } else if (data.type == "change_song") {
     changeSong(data.content.song as ISong, data.content.speed_rating);
   }
 });
@@ -80,7 +77,7 @@ export default function Home() {
       let x = 0;
 
       for (let i = 0; i < bufferLength; i++) {
-        const barHeight = (dataArray[i]) / 2 + 6;
+        const barHeight = dataArray[i] / 2 + 6;
 
         const hue = (i * 360) / bufferLength;
         const saturation = 80;
@@ -93,14 +90,7 @@ export default function Home() {
 
         ctx.beginPath();
 
-        ctx.arc(
-          x + barWidth / 2,
-          barY,
-          barWidth / 2,
-          Math.PI,
-          0,
-          false
-        );
+        ctx.arc(x + barWidth / 2, barY, barWidth / 2, Math.PI, 0, false);
 
         ctx.lineTo(x + barWidth, barY + barHeight);
 
@@ -134,7 +124,7 @@ export default function Home() {
   const fakeArtist: IArtist = {
     name: "Echo Reverie",
     artist_profile_url: "/coverImgs/sabrina.jpg",
-    artist_genres: ["Dream Pop", "Shoegaze", "Indie Rock"]
+    artist_genres: ["Dream Pop", "Shoegaze", "Indie Rock"],
   };
   const fakeSong: ISong = {
     id: "song12345",
@@ -145,7 +135,7 @@ export default function Home() {
     album_name: "Celestial Echoes",
     song_genres: ["Dream Pop", "Indie Rock"],
     song_moods: ["Ethereal", "Melancholic", "Uplifting"],
-    user_reaction: "Loved it! Perfect for a late-night drive."
+    user_reaction: "Loved it! Perfect for a late-night drive.",
   };
 
   const [isPlaying, setIsPlaying] = useState(false);
@@ -159,7 +149,7 @@ export default function Home() {
 
   const [isMuted, setMuted] = useState(true);
   const [djMessage, setDjMessage] = useState("");
-  
+
   addDjResponse = (message: string) => {
     setDjMessage(message.slice(0, 250));
   };
@@ -170,14 +160,16 @@ export default function Home() {
     setFavoriteArtists(newFavorites);
   };
   changeSong = (song: ISong, rating: number) => {
-    sendMessage('GameController', 'setSpeed', rating);
-    sendMessage('GameController', 'pickUpRecord');
+    sendMessage("GameController", "setSpeed", rating);
+    sendMessage("GameController", "pickUpRecord");
     setCurrentSong(song);
 
     if (audioRef.current) {
       audioRef.current.src = song.preview_url;
       audioRef.current.load();
-      audioRef.current.play().catch(error => console.error("Playback error:", error));
+      audioRef.current
+        .play()
+        .catch((error) => console.error("Playback error:", error));
       audioRef.current.currentTime = 0;
     }
   };
@@ -203,7 +195,7 @@ export default function Home() {
       let deltaTime = audio.currentTime - currentTime;
       setCurrentTime(audio.currentTime);
       if (deltaTime > 0) {
-        setVisualTime(oldTime => oldTime + deltaTime);
+        setVisualTime((oldTime) => oldTime + deltaTime);
       }
     }
   };
@@ -220,7 +212,9 @@ export default function Home() {
 
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60).toString().padStart(2, "0");
+    const seconds = Math.floor(time % 60)
+      .toString()
+      .padStart(2, "0");
     return `${minutes}:${seconds}`;
   };
 
@@ -240,25 +234,27 @@ export default function Home() {
   } = useSpeechRecognition();
 
   useEffect(() => {
-    SpeechRecognition.startListening({ continuous: true }); 
-  }, [])
+    SpeechRecognition.startListening({ continuous: true });
+  }, []);
 
   useEffect(() => {
-    let transcriptWords = transcript.split(' ');
+    let transcriptWords = transcript.split(" ");
     let lastWord = transcriptWords[transcriptWords.length - 1].toLowerCase();
-    if (isMuted && (lastWord === "dj" || lastWord == "bestie" || lastWord == "dave")) {
+    if (
+      isMuted &&
+      (lastWord === "dj" || lastWord == "bestie" || lastWord == "dave")
+    ) {
       resetTranscript();
-      SpeechRecognition.startListening({ continuous: true }); 
+      SpeechRecognition.startListening({ continuous: true });
       setMuted(false);
-    }
-    else if (!isMuted && lastWord === "thanks") {
+    } else if (!isMuted && lastWord === "thanks") {
       setMuted(true);
       socketSend({
         type: "user_request",
         content: transcript,
       });
       resetTranscript();
-      SpeechRecognition.startListening({ continuous: true }); 
+      SpeechRecognition.startListening({ continuous: true });
     }
   }, [transcript]);
 
@@ -283,16 +279,29 @@ export default function Home() {
   return (
     <div className="w-screen h-screen px-[5%] flex justify-center items-center gap-[48px]">
       <div className="w-[60%] h-[80%] justify-between items-center flex flex-col">
-        <h1 className="text-center text-[100px] my-[-20px] text-[--popcol]">DJ Bestie</h1>
+        <h1 className="text-center text-[100px] my-[-20px] text-[--popcol]">
+          DJ Bestie
+        </h1>
         <h1 className="text-center text-[30px] font-sans">
           Your AI Music Companion
         </h1>
         <div className="h-[80%] mt-[24px] w-full border-2 border-[--grey1] rounded-[25px] cursor-pointer overflow-hidden relative">
-          <Unity unityProvider={unityProvider} style={{ width: "100%", height: "100%" }} />;
+          <Unity
+            unityProvider={unityProvider}
+            style={{ width: "100%", height: "100%" }}
+          />
+          ;
         </div>
-        <button onClick={() => { setMuted(!isMuted) }}>{isMuted ? "Unmute" : "Mute"}</button>
+        <button
+          onClick={() => {
+            setMuted(!isMuted);
+          }}
+        >
+          {isMuted ? "Unmute" : "Mute"}
+        </button>
         <div>
-          {(isMuted && djMessage && `DJ: ${djMessage}`) || (transcript && `User: ${transcript.slice(-250)}`)}
+          {(isMuted && djMessage && `DJ: ${djMessage}`) ||
+            (transcript && `User: ${transcript.slice(-250)}`)}
         </div>
       </div>
       <div className="w-[38%] h-full flex flex-col gap-[24px] justify-center items-center">
@@ -315,9 +324,10 @@ export default function Home() {
             <div className="w-[72%] h-[auto] pl-[24px] flex flex-col justify-center">
               <div className="pb-[12px]">
                 <h2 className="text-[1.2vw] font-bold">{currentSong.title}</h2>
-                <h3 className="text-[0.9vw] text-[--grey1]">{currentSong.artist.name}</h3>
+                <h3 className="text-[0.9vw] text-[--grey1]">
+                  {currentSong.artist.name}
+                </h3>
               </div>
-
 
               <div className="flex items-center gap-[12px] w-full">
                 <audio
@@ -346,13 +356,14 @@ export default function Home() {
                 </span>
               </div>
             </div>
-
           </div>
 
           <div className="w-full h-[48%] grid grid-cols-2 gap-[24px]">
             <div className="w-full h-full border-2 border-[--grey1] rounded-[25px] overflow-hidden pr-[4px]">
               <div className="rounded-t-[10px] bg-[--popcol] h-[15%] mr-[-4px] mb-[12px] p-[12px] flex items-center">
-                <h1 className="text-[1vw] mx-[auto] text-[--dark2]">Playlist</h1>
+                <h1 className="text-[1vw] mx-[auto] text-[--dark2]">
+                  Playlist
+                </h1>
               </div>
               <div className="px-[12px] pb-[12px] gap-[12px] h-[82%] flex flex-col overflow-y-scroll">
                 {playlist.map((song: ISong) => {
@@ -369,7 +380,9 @@ export default function Home() {
                         />
                       </div>
                       <div className="w-[auto] h-full flex flex-col pl-[10px] justify-center">
-                        <h2 className="text-[0.85vw] font-medium">{song.title}</h2>
+                        <h2 className="text-[0.85vw] font-medium">
+                          {song.title}
+                        </h2>
                         <h3 className="text-[0.75vw]">{song.artist.name}</h3>
                       </div>
                     </div>
@@ -379,7 +392,9 @@ export default function Home() {
             </div>
             <div className="w-full h-full border-2 border-[--grey1] rounded-[25px] overflow-hidden pr-[4px]">
               <div className="rounded-t-[10px] bg-[--popcol] h-[15%] mr-[-4px] mb-[12px] p-[12px] flex items-center">
-                <h1 className="text-[1vw] mx-[auto] text-[--dark2]">Favorite Artists</h1>
+                <h1 className="text-[1vw] mx-[auto] text-[--dark2]">
+                  Favorite Artists
+                </h1>
               </div>
               <div className="px-[12px] pb-[12px] gap-[12px] h-[82%] flex flex-col overflow-y-scroll">
                 {favoriteArtists.map((artist: IArtist, i) => {
